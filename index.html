@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ジャグラー設定判別</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one phone column — pick machine, tap counters, read the signal card right below */
+:root{
+  --bg:#f3f4f7; --panel:#ffffff; --ink:#1b1d26; --muted:#6a6e80; --line:#dfe1e8;
+  --accent:#d0213b; --accent-soft:#fbe3e7; --reg:#2f5fd0; --grape:#7a3fb0;
+  --good:#1f8a4c; --warn:#b7791f; --new:#c2410c;
+  --f-display:"Chakra Petch","Noto Sans JP",system-ui,sans-serif;
+  --f-body:"Noto Sans JP",system-ui,-apple-system,sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1118; --panel:#181b25; --ink:#eceef5; --muted:#9298ad; --line:#2a2e3c;
+  --accent:#ff4d68; --accent-soft:#3a1a22; --reg:#6f97ff; --grape:#b98af0;
+  --good:#4cc982; --warn:#e3b25a; --new:#fb923c; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1118; --panel:#181b25; --ink:#eceef5; --muted:#9298ad; --line:#2a2e3c;
+  --accent:#ff4d68; --accent-soft:#3a1a22; --reg:#6f97ff; --grape:#b98af0;
+  --good:#4cc982; --warn:#e3b25a; --new:#fb923c; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:560px;margin:0 auto;padding-block:18px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px}
+header h1{font-family:var(--f-display);font-size:1.5rem;margin:0;letter-spacing:.02em}
+header h1 .lamp{color:var(--accent)}
+header p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
+.label{font-size:.72rem;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+
+/* machine grid */
+.machines{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.machines button{position:relative;min-width:0;font:500 .8rem/1.25 var(--f-body);padding:9px 4px 7px;border-radius:10px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.machines button small{font:500 .66rem var(--f-num);color:var(--muted)}
+.machines button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.machines button[aria-pressed="true"] small{color:var(--accent)}
+.machines .newb{position:absolute;top:-6px;right:-3px;font:700 .58rem var(--f-body);background:var(--new);color:#fff;padding:1px 5px;border-radius:99px}
+
+/* counters */
+.ctr{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.ctr:last-child{border-bottom:0}
+.ctr .name{font-weight:700;display:flex;flex-direction:column;min-width:0}
+.ctr .name small{font-weight:400;color:var(--muted);font-size:.74rem;font-family:var(--f-num)}
+.ctr .ctl{display:flex;align-items:center;gap:6px}
+.ctr input{width:5.6em;text-align:center;font:700 1.2rem var(--f-num);padding:8px 2px;border:1px solid var(--line);
+  border-radius:8px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
+.ctr button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+  color:var(--ink);font:700 1.15rem var(--f-num);cursor:pointer;touch-action:manipulation}
+.ctr button.plus{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.ctr[data-k="big"] .name{color:var(--accent)} .ctr[data-k="reg"] .name,.ctr[data-k="sreg"] .name{color:var(--reg)}
+.ctr[data-k="grape"] .name{color:var(--grape)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.ghost{font:500 .78rem var(--f-body);padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+
+details.more{margin-top:4px;border-top:1px dashed var(--line);padding-top:6px}
+details summary{cursor:pointer;font-size:.82rem;color:var(--muted);list-style:none;padding:4px 0}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸ ";display:inline-block;transition:transform .2s}
+details[open] > summary::before{transform:rotate(90deg)}
+
+/* hero */
+.hero{border-radius:16px;padding:16px;border:2px solid var(--sig);background:color-mix(in srgb,var(--sig) 10%,var(--panel));
+  display:flex;flex-direction:column;gap:10px;--sig:var(--muted);transition:border-color .3s,background .3s}
+.hero.go{--sig:var(--good)} .hero.hold{--sig:var(--warn)} .hero.stop{--sig:var(--accent)}
+.hero .sigrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero .dot{width:16px;height:16px;border-radius:50%;background:var(--sig);box-shadow:0 0 0 5px color-mix(in srgb,var(--sig) 22%,transparent);flex:none}
+.hero .sig{font:700 1.35rem var(--f-display);color:var(--sig)}
+.hero .ctx{font-size:.78rem;color:var(--muted);font-family:var(--f-num)}
+.hero .yen{font:700 clamp(2.1rem,10vw,2.9rem)/1.1 var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.hero .yen small{font-size:.9rem;font-family:var(--f-body);color:var(--muted);font-weight:500;margin-left:4px}
+.hero .sub{font-size:.85rem;color:var(--muted)}
+.hero .sub b{color:var(--ink);font-family:var(--f-num)}
+.hiprob{display:flex;align-items:center;gap:10px;font-size:.85rem}
+.hiprob .track{flex:1;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.hiprob .fill{height:100%;background:var(--sig);border-radius:99px;transition:width .3s}
+.hiprob b{font:700 1rem var(--f-num);min-width:3.6em;text-align:right}
+.gauge{position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 23%,var(--warn) 23%,var(--warn) 38.5%,var(--good) 38.5%,var(--good) 100%);opacity:.85}
+.gauge .needle{position:absolute;top:-5px;width:4px;height:22px;border-radius:2px;background:var(--ink);transform:translateX(-50%);transition:left .3s}
+.gscale{position:relative;height:1.1em;font:500 .68rem var(--f-num);color:var(--muted);margin-top:4px}
+.gscale span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.gscale span:first-child{transform:none} .gscale span:last-child{transform:translateX(-100%)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.compare div{background:var(--panel);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
+.compare span{font-size:.72rem;color:var(--muted)}
+.compare b{font:700 1rem var(--f-num);font-variant-numeric:tabular-nums}
+.opts{display:flex;flex-direction:column;gap:2px;border-top:1px solid color-mix(in srgb,var(--sig) 30%,var(--line));padding-top:6px}
+.cfgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.cfgrid.three{grid-template-columns:1fr 1fr 1fr}
+.cfgrid label{display:flex;flex-direction:column;gap:4px;font-size:.74rem;color:var(--muted);min-width:0}
+.cfgrid select,.cfgrid input{width:100%;font:500 .9rem var(--f-body);padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.cfgrid select:disabled{opacity:.5}
+.note{font-size:.76rem;color:var(--muted);margin:8px 0 0}
+
+/* detail */
+.verdict{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.verdict div{display:flex;flex-direction:column;gap:2px}
+.verdict b{font:700 1.35rem var(--f-num);font-variant-numeric:tabular-nums}
+.verdict span{font-size:.72rem;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.bar{display:grid;grid-template-columns:2.6em 1fr 3.6em;align-items:center;gap:8px;font-family:var(--f-num);font-size:.85rem}
+.bar .track{height:16px;background:var(--bg);border-radius:5px;overflow:hidden}
+.bar .fill{height:100%;background:var(--muted);border-radius:5px;transition:width .3s}
+.bar.hi .fill{background:var(--accent)}
+.bar .pct{text-align:right;font-variant-numeric:tabular-nums}
+.bar .s{font-family:var(--f-display);font-weight:700}
+.tablewrap{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-family:var(--f-num);font-size:.76rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-family:var(--f-body)}
+td:first-child,th:first-child{text-align:left}
+tr.now td{color:var(--accent);font-weight:700}
+.chip{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:99px;font-weight:700}
+.chip.g{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.chip.w{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.chip.b{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:360px){.machines{grid-template-columns:repeat(2,1fr)}.ctr input{width:4.6em}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>ジャグラー<span class="lamp">設定判別</span></h1>
+    <p>台のデータを入れると「続けるか・やめるか」と1時間あたりの期待収支が出ます。</p>
+  </header>
+
+  <section class="panel">
+    <span class="label">① 機種をえらぶ</span>
+    <div class="machines" id="machines" role="group" aria-label="機種"></div>
+  </section>
+
+  <section class="panel">
+    <div class="row"><span class="label">② データカウンターの数字を入れる</span><button class="ghost" id="reset" type="button">リセット</button></div>
+    <div id="basic"></div>
+    <details class="more" id="morebox">
+      <summary id="moresum">もっと詳しく（ぶどう・単独REG）</summary>
+      <div id="adv"></div>
+    </details>
+  </section>
+
+  <section class="hero" id="hero" aria-live="polite">
+    <div class="sigrow"><span class="dot"></span><span class="sig" id="sig">–</span></div>
+    <div class="ctx" id="ctx"></div>
+    <div><div class="yen" id="yen">–</div><div class="sub" id="yensub"></div></div>
+    <div class="hiprob"><span>高設定(4〜6)の可能性</span><div class="track"><div class="fill" id="hifill" style="width:0"></div></div><b id="hipct">–</b></div>
+    <div>
+      <div class="gauge"><div class="needle" id="needle" style="left:23%"></div></div>
+      <div class="gscale"><span style="left:0">97%</span><span style="left:23%">100%</span><span style="left:38.5%">102%</span><span style="left:69%">機械割</span><span style="left:100%">110%</span></div>
+    </div>
+    <div class="compare">
+      <div><span>もし設定1なら</span><b id="c1">–</b></div>
+      <div><span>もし設定6なら</span><b id="c6">–</b></div>
+    </div>
+    <div class="opts">
+      <details>
+        <summary id="cfgsum">換算の条件</summary>
+        <div class="cfgrid">
+          <label for="c-coin">レート
+            <select id="c-coin"><option value="20">20円スロ</option><option value="10">10円スロ</option><option value="5">5円スロ</option></select></label>
+          <label for="c-ex">交換率
+            <select id="c-ex"><option value="50">等価（50枚）</option><option value="52">5.2枚</option><option value="56">5.6枚</option><option value="60">6枚</option></select></label>
+          <label for="c-gph">1時間の回転数
+            <input id="c-gph" inputmode="numeric" value="750"></label>
+          <label for="c-hrs">あと何時間打つか
+            <input id="c-hrs" inputmode="decimal" value="5"></label>
+        </div>
+      </details>
+      <details>
+        <summary id="shopsum">お店の状況：通常営業</summary>
+        <div class="cfgrid">
+          <label for="prior" style="grid-column:1/-1">お店の状況
+            <select id="prior">
+              <option value="normal">通常営業（設定1が大半）</option>
+              <option value="tough">渋い店（ほぼ設定1）</option>
+              <option value="event">イベント・取材日</option>
+              <option value="flat">均等（参考用）</option>
+            </select></label>
+        </div>
+        <p class="note" id="islandhead">島の全台を合計した数字を入れると、その店の甘さを自動で反映します（任意）。</p>
+        <div class="cfgrid three">
+          <label for="i-g">島の総G数<input id="i-g" inputmode="numeric" placeholder="例 60000"></label>
+          <label for="i-b">BIG合計<input id="i-b" inputmode="numeric" placeholder="例 230"></label>
+          <label for="i-r">REG合計<input id="i-r" inputmode="numeric" placeholder="例 170"></label>
+        </div>
+        <p class="note" id="islandmsg"></p>
+      </details>
+    </div>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>詳しい判別結果とスペック表</summary>
+      <div class="verdict">
+        <div><b id="v4">–</b><span>設定4以上</span></div>
+        <div><b id="v56">–</b><span>設定5・6</span></div>
+        <div><b id="vrate">–</b><span>期待機械割</span></div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <p class="note" id="status"></p>
+      <div class="tablewrap"><table id="spec"></table></div>
+      <p class="note">BIG・REG・機械割はメーカー公表値です。ぶどう・単独REGは解析サイトの調査値で、データがある機種だけで使います。マイジャグラーVIはVと、ネオアイムジャグラーEXはアイムジャグラーEXと同じスペックです。出典：1geki、なな徹、DMMぱちタウン、ちょんぼりすた。</p>
+    </details>
+  </section>
+</div>
+
+<script>
+/* ===== 機種データ =====
+   big/reg/grape/sreg は「1/x」の x。grape・sreg は設定別データがある機種だけ持つ。
+   units はよく行く店の設置台数（並び順もこの順）。 */
+const MY5 = {big:[273.1,270.8,266.4,254.0,240.1,229.1], reg:[409.6,385.5,336.1,290.0,268.6,229.1],
+  grape:[5.90,5.88,5.82,5.81,5.79,5.69], sreg:[652.73,607.65,500.25,411.91,397.19,333.81],
+  rate:[97.0,98.0,99.9,102.8,105.3,109.4]};
+const MACHINES = [
+  {id:"neoim", name:"ネオアイムEX", full:"ネオアイムジャグラーEX", units:40,
+    big:[273.1,269.7,269.7,259.0,259.0,255.0], reg:[439.8,399.6,331.0,315.1,255.0,255.0],
+    grape:[6.06,6.04,6.04,6.04,6.02,5.80], sreg:[630.15,574.88,474.90,448.88,364.09,364.09],
+    rate:[97.0,98.0,99.5,101.1,103.3,105.5]},
+  {id:"my5", name:"マイジャグV", full:"マイジャグラーV", units:30, ...MY5},
+  {id:"gogo3", name:"ゴーゴー3", full:"ゴーゴージャグラー3", units:26,
+    big:[259.0,258.0,257.0,254.0,247.3,234.9], reg:[354.2,332.7,306.2,268.6,247.3,234.9],
+    rate:[97.2,98.2,99.4,101.6,103.8,106.5]},
+  {id:"my6", name:"マイジャグVI", full:"マイジャグラーVI", units:7, isNew:true, ...MY5},
+  {id:"funky2", name:"ファンキー2", full:"ファンキージャグラー2", units:8,
+    big:[266.4,259.0,256.0,249.2,240.1,219.9], reg:[439.8,407.1,366.1,322.8,299.3,262.1],
+    grape:[5.95,5.92,5.90,5.85,5.78,5.72], sreg:[644.60,562.32,504.96,451.06,417.18,361.75],
+    rate:[97.0,98.5,99.8,102.0,104.3,109.0]},
+  {id:"mister", name:"ミスター", full:"ミスタージャグラー", units:8,
+    big:[268.6,267.5,260.1,249.2,240.9,237.4], reg:[374.5,354.2,331.0,291.3,257.0,237.4],
+    rate:[97.0,98.0,99.8,102.7,105.5,107.3]},
+  {id:"happy8", name:"ハッピーVIII", full:"ハッピージャグラーVIII", units:8,
+    big:[273.1,270.8,263.2,254.0,239.2,226.0], reg:[397.2,362.1,332.7,300.6,273.1,256.0],
+    rate:[97.0,98.1,99.9,102.9,105.8,108.4]},
+  {id:"girlsss", name:"ガールズSS", full:"ジャグラーガールズSS", units:8,
+    big:[273.1,270.8,260.1,250.1,243.6,226.0], reg:[381.0,350.5,316.6,281.3,270.8,252.1],
+    rate:[97.0,97.9,99.9,102.1,104.0,107.5]},
+  {id:"ultra", name:"Uミラクル", full:"ウルトラミラクルジャグラー", units:8,
+    big:[267.5,261.1,256.0,242.7,233.2,216.3], reg:[425.6,402.1,350.5,322.8,297.9,277.7],
+    grape:[5.93,5.93,5.93,5.93,5.87,5.81],
+    rate:[97.0,98.1,99.8,102.1,104.5,108.1]}
+];
+const byId = Object.fromEntries(MACHINES.map(m=>[m.id,m]));
+
+/* ===== お店の状況（設定1〜6の割合）===== */
+const PRIORS = {normal:[62,16,10,7,3,2], tough:[80,10,5,3,1.5,.5], event:[35,15,15,15,10,10], flat:[1,1,1,1,1,1]};
+const PRIOR_NAME = {normal:"通常営業",tough:"渋い店",event:"イベント日",flat:"均等"};
+
+/* 島の合計データから店の配分を推定：通常営業の配分を高設定側へ傾け、合算確率を合わせる */
+function islandPrior(m,G,B,R){
+  if(!(G>0)||B===null||R===null||B+R===0) return null;
+  const obs=(B+R)/G, base=PRIORS.normal;
+  const mix=l=>{const w=base.map((b,i)=>b*Math.exp(l*i)),t=w.reduce((a,x)=>a+x,0);
+    return {w:w.map(x=>x/t), p:w.reduce((a,x,i)=>a+x/t*(1/m.big[i]+1/m.reg[i]),0)};};
+  let lo=-6,hi=6;
+  for(let k=0;k<60;k++){const mid=(lo+hi)/2; if(mix(mid).p<obs) lo=mid; else hi=mid;}
+  const w=mix((lo+hi)/2).w;
+  return {w, avg:w.reduce((a,x,i)=>a+x*(i+1),0), rate:1/obs};
+}
+
+const BASIC = [
+  {k:"g",label:"総ゲーム数",step:100,hint:"＝総回転数"},
+  {k:"big",label:"BIG",step:1,hint:""},
+  {k:"reg",label:"REG",step:1,hint:""}
+];
+const ADV = [
+  {k:"sreg",label:"うち単独REG",step:1,hint:"チェリーなしで揃ったREG",need:"sreg"},
+  {k:"grape",label:"ぶどう",step:1,hint:"自分で数えた回数",need:"grape"},
+  {k:"gg",label:"ぶどうを数えたG数",step:100,hint:"空欄なら総ゲーム数",need:"grape"}
+];
+const EMPTY = {g:"",big:"",reg:"",sreg:"",grape:"",gg:""};
+const CFG0 = {coin:"20",ex:"50",gph:"750",hrs:"5"};
+let state = {model:"neoim", prior:"normal", v:{...EMPTY,g:"3000",big:"12",reg:"13"}, cfg:{...CFG0}, isl:{g:"",b:"",r:""}};
+try{ const s=JSON.parse(localStorage.getItem("jug-state4")||"null");
+  if(s&&s.v&&byId[s.model]) state={...state,...s,cfg:{...CFG0,...(s.cfg||{})},isl:{g:"",b:"",r:"",...(s.isl||{})}}; }catch(e){}
+if(!PRIORS[state.prior]) state.prior="normal";
+const save=()=>{try{localStorage.setItem("jug-state4",JSON.stringify(state))}catch(e){}};
+
+const $=id=>document.getElementById(id);
+const num=x=>{const n=parseInt(x);return Number.isFinite(n)?n:null};
+const binLL=(k,n,p)=>k*Math.log(p)+(n-k)*Math.log(1-p);
+const frac=(n,k)=>k>0?"1/"+(n/k).toFixed(1):"–";
+const yen=x=>(x>=0?"+":"−")+(Math.round(Math.abs(x)/10)*10).toLocaleString()+"円";
+
+function buildMachines(){
+  $("machines").innerHTML=MACHINES.map(m=>`<button type="button" data-m="${m.id}" aria-pressed="${m.id===state.model}">
+    ${m.isNew?'<span class="newb">新台</span>':''}${m.name}<small>${m.units}台</small></button>`).join("");
+  $("machines").querySelectorAll("button").forEach(b=>b.onclick=()=>{state.model=b.dataset.m;buildMachines();buildCounters();update();});
+}
+function counterHTML(f){
+  return `<div class="ctr" data-k="${f.k}">
+    <label class="name" for="f-${f.k}">${f.label}<small id="r-${f.k}">${f.hint}</small></label>
+    <div class="ctl">
+      <button type="button" data-d="-${f.step}" aria-label="${f.label}を減らす">−</button>
+      <input id="f-${f.k}" inputmode="numeric" pattern="[0-9]*" value="${state.v[f.k]??""}">
+      <button type="button" class="plus" data-d="${f.step}" aria-label="${f.label}を増やす">+</button>
+    </div></div>`;
+}
+function buildCounters(){
+  const m=byId[state.model];
+  $("basic").innerHTML=BASIC.map(counterHTML).join("");
+  const adv=ADV.filter(f=>m[f.need]);
+  if(adv.length){
+    $("adv").innerHTML=adv.map(counterHTML).join("")+'<p class="note">数えた分だけ精度が上がります。空欄なら使いません。</p>';
+    $("moresum").textContent="もっと詳しく（"+[m.grape&&"ぶどう",m.sreg&&"単独REG"].filter(Boolean).join("・")+"）";
+  } else {
+    $("adv").innerHTML='<p class="note">この機種はぶどう・単独REGの設定別データが公開されていないため、BIG・REGだけで判定します。</p>';
+    $("moresum").textContent="もっと詳しく（この機種はBIG・REGのみ）";
+  }
+  [...BASIC,...adv].forEach(f=>{
+    const inp=$("f-"+f.k);
+    inp.oninput=()=>{state.v[f.k]=inp.value.replace(/[^0-9]/g,"");update();};
+    inp.parentElement.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      const n=Math.max(0,(parseInt(state.v[f.k])||0)+parseInt(b.dataset.d));
+      state.v[f.k]=String(n); inp.value=n; update();
+    });
+  });
+}
+
+function update(){
+  save();
+  const m=byId[state.model], v=state.v;
+  const g=num(v.g), big=num(v.big), reg=num(v.reg);
+  const sreg=m.sreg?num(v.sreg):null, grape=m.grape?num(v.grape):null;
+  const gg=num(v.gg)||g;
+
+  // 事前分布
+  const isl=islandPrior(m,num(state.isl.g),num(state.isl.b),num(state.isl.r));
+  const prior=isl?isl.w:PRIORS[state.prior];
+  $("prior").disabled=!!isl;
+  $("shopsum").textContent="お店の状況："+(isl?`島データ反映（平均設定 約${isl.avg.toFixed(1)}）`:PRIOR_NAME[state.prior]);
+  $("islandhead").textContent=`この店の${m.full}は${m.units}台。全台を合計した数字を入れると、その店の甘さを自動で反映します（任意）。`;
+  if(isl){
+    const a=isl.avg, tone=a<1.8?"渋め":a<2.6?"普通":a<3.5?"甘め":"かなり甘い";
+    $("islandmsg").innerHTML=`島の合算 1/${isl.rate.toFixed(1)} → 平均設定 約<b>${a.toFixed(1)}</b>（${tone}）。上の「お店の状況」より優先します。`+
+      (num(state.isl.g)<20000?" 総G数が2万G未満なので目安程度です。":"");
+  } else $("islandmsg").textContent="";
+
+  // 尤度
+  let ll=[0,0,0,0,0,0], used=[];
+  if(g&&g>0){
+    if(big!==null){for(let s=0;s<6;s++)ll[s]+=binLL(big,g,1/m.big[s]);used.push("BIG");}
+    if(reg!==null){
+      if(sreg!==null&&sreg<=reg){
+        for(let s=0;s<6;s++){const ps=1/m.sreg[s], pc=Math.max(1/m.reg[s]-ps,1e-6);
+          ll[s]+=binLL(sreg,g,ps)+binLL(reg-sreg,g,pc);}
+        used.push("REG(単独/チェリー別)");
+      } else {for(let s=0;s<6;s++)ll[s]+=binLL(reg,g,1/m.reg[s]);used.push("REG");}
+    }
+    if(grape!==null&&gg>0&&grape<gg){for(let s=0;s<6;s++)ll[s]+=binLL(grape,gg,1/m.grape[s]);used.push("ぶどう");}
+  }
+  const mx=Math.max(...ll);
+  const w=ll.map((l,i)=>Math.exp(l-mx)*prior[i]), tot=w.reduce((a,b)=>a+b,0);
+  const p=w.map(x=>x/tot);
+  const pct=x=>(x*100).toFixed(1)+"%";
+  const er=p.reduce((a,x,i)=>a+x*m.rate[i],0);
+  const hi=p[3]+p[4]+p[5];
+
+  // 金額
+  const c=state.cfg, coin=+c.coin, ex=+c.ex, gph=parseFloat(c.gph)||750, hrs=parseFloat(c.hrs)||0;
+  const yenPerCoin=(1000*coin/20)/ex;
+  const perHour=r=>gph*3*(r/100-1)*yenPerCoin;
+  const yh=perHour(er);
+  $("cfgsum").textContent=`換算の条件：${coin}円スロ・${ex===50?"等価":(ex/10)+"枚交換"}・${gph}G/時`;
+
+  // ヒーロー
+  const hero=$("hero"); hero.classList.remove("go","hold","stop");
+  if(!g){
+    $("sig").textContent="総ゲーム数を入れてください"; $("ctx").textContent=m.full;
+    $("yen").textContent="–"; $("yensub").textContent=""; $("hipct").textContent="–"; $("hifill").style.width="0";
+  } else {
+    let cls,label;
+    if(er>=102){cls="go";label="打ち続けてOK";} else if(er>=100){cls="hold";label="様子見";} else {cls="stop";label="ヤメ推奨";}
+    if(g<1500) label+="（データ少なめ）";
+    hero.classList.add(cls); $("sig").textContent=label;
+    $("ctx").textContent=`${m.full}・${g.toLocaleString()}G・BIG ${big??0} / REG ${reg??0}（合算 ${frac(g,(big||0)+(reg||0))}）`;
+    $("yen").innerHTML=`${yen(yh)}<small>/ 1時間</small>`;
+    $("yensub").innerHTML=hrs>0?`あと${hrs}時間打つと <b>${yen(yh*hrs)}</b>（約${Math.round(gph*3*(er/100-1)*hrs).toLocaleString()}枚）の期待値`:"";
+    $("hipct").textContent=Math.round(hi*100)+"%"; $("hifill").style.width=(hi*100).toFixed(1)+"%";
+  }
+  $("needle").style.left=(g?Math.min(100,Math.max(0,(er-97)/13*100)):23)+"%";
+  $("c1").textContent=yen(perHour(m.rate[0]))+"/時"; $("c6").textContent=yen(perHour(m.rate[5]))+"/時";
+
+  // 入力欄の現在確率
+  const setHint=(k,txt,def)=>{const el=$("r-"+k); if(el) el.textContent=txt||def;};
+  setHint("big",g&&big!==null?frac(g,big):"","");
+  setHint("reg",g&&reg!==null?frac(g,reg):"","");
+  setHint("sreg",g&&sreg!==null?frac(g,sreg):"","チェリーなしで揃ったREG");
+  setHint("grape",grape?"1/"+(gg/grape).toFixed(2):"","自分で数えた回数");
+
+  // 詳細
+  $("v4").textContent=pct(hi); $("v56").textContent=pct(p[4]+p[5]); $("vrate").textContent=er.toFixed(1)+"%";
+  $("bars").innerHTML=p.map((x,i)=>`<div class="bar ${i>=3?'hi':''}"><span class="s">設定${i+1}</span><div class="track"><div class="fill" style="width:${(x*100).toFixed(1)}%"></div></div><span class="pct">${pct(x)}</span></div>`).join("");
+  const top=p.indexOf(Math.max(...p));
+  let chip,msg;
+  if(!g){chip='<span class="chip w">入力待ち</span>';msg="";}
+  else{chip=g<2000?'<span class="chip w">サンプル少なめ</span>':g<5000?'<span class="chip b">参考レベル</span>':'<span class="chip g">信頼度高め</span>';
+    msg=` 使用要素：${used.join("、")||"なし"}。最有力は設定${top+1}。前提：${isl?"島データ":PRIOR_NAME[state.prior]}。`;}
+  $("status").innerHTML=chip+msg;
+  const cur=g?`<tr class="now"><td>現在</td><td>${big!==null?frac(g,big):"–"}</td><td>${reg!==null?frac(g,reg):"–"}</td><td>${frac(g,(big||0)+(reg||0))}</td>${m.grape?`<td>${grape?"1/"+(gg/grape).toFixed(2):"–"}</td>`:""}${m.sreg?`<td>${sreg!==null?frac(g,sreg):"–"}</td>`:""}<td></td></tr>`:"";
+  $("spec").innerHTML=`<caption style="text-align:left;font-size:.8rem;color:var(--muted);padding-bottom:4px">${m.full}</caption><tr><th>設定</th><th>BIG</th><th>REG</th><th>合算</th>${m.grape?"<th>ぶどう</th>":""}${m.sreg?"<th>単独REG</th>":""}<th>機械割</th></tr>`+
+    m.big.map((b,i)=>`<tr><td>${i+1}</td><td>1/${b}</td><td>1/${m.reg[i]}</td><td>1/${(1/(1/b+1/m.reg[i])).toFixed(1)}</td>${m.grape?`<td>1/${m.grape[i].toFixed(2)}</td>`:""}${m.sreg?`<td>1/${Math.round(m.sreg[i])}</td>`:""}<td>${m.rate[i].toFixed(1)}%</td></tr>`).join("")+cur;
+}
+
+[["c-coin","coin"],["c-ex","ex"],["c-gph","gph"],["c-hrs","hrs"]].forEach(([id,k])=>{
+  const el=$(id); el.value=state.cfg[k];
+  el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{state.cfg[k]=el.value;update();});
+});
+[["i-g","g"],["i-b","b"],["i-r","r"]].forEach(([id,k])=>{
+  const el=$(id); el.value=state.isl[k]||"";
+  el.addEventListener("input",()=>{state.isl[k]=el.value.replace(/[^0-9]/g,"");update();});
+});
+$("prior").value=state.prior;
+$("prior").onchange=e=>{state.prior=e.target.value;update();};
+$("reset").onclick=()=>{state.v={...EMPTY};buildCounters();update();};
+buildMachines();buildCounters();update();
+</script>
+</body>
+</html>
