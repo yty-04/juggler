@@ -206,13 +206,16 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
         <div class="cfgrid">
           <label for="c-coin">レート
             <select id="c-coin"><option value="20">20円スロ</option><option value="10">10円スロ</option><option value="5">5円スロ</option></select></label>
-          <label for="c-ex">交換率
-            <select id="c-ex"><option value="49">49枚（この店）</option><option value="50">等価（50枚）</option><option value="52">5.2枚</option><option value="56">5.6枚</option><option value="60">6枚</option></select></label>
+          <label for="c-lend">貸し出し（1000円で）
+            <select id="c-lend"><option value="49">49枚（この店）</option><option value="50">50枚</option><option value="47">47枚</option><option value="46">46枚</option></select></label>
+          <label for="c-ex">交換率（1000円分の枚数）
+            <select id="c-ex"><option value="46">46枚</option><option value="47">47枚</option><option value="49">49枚</option><option value="50">50枚</option><option value="52">52枚</option><option value="56">56枚</option><option value="60">60枚</option></select></label>
           <label for="c-gph">1時間の回転数
             <input id="c-gph" inputmode="numeric" value="750"></label>
           <label for="c-hrs">あと何時間打つか
             <input id="c-hrs" inputmode="decimal" value="5"></label>
         </div>
+        <p class="note" id="exnote"></p>
       </details>
       <details>
         <summary id="shopsum">お店の状況：通常営業</summary>
@@ -322,7 +325,7 @@ const ADV = [
   {k:"gg",label:"ぶどうを数えたG数",step:100,hint:"空欄なら総ゲーム数",need:"grape"}
 ];
 const EMPTY = {g:"",big:"",reg:"",sreg:"",grape:"",gg:""};
-const CFG0 = {coin:"20",ex:"49",gph:"750",hrs:"5"};
+const CFG0 = {coin:"20",lend:"49",ex:"49",gph:"750",hrs:"5"};
 let state = {model:"neoim", prior:"normal", v:{...EMPTY,g:"3000",big:"12",reg:"13"}, cfg:{...CFG0}, isl:{g:"",b:"",r:""}};
 try{ const s=JSON.parse(localStorage.getItem("jug-state4")||"null");
   if(s&&s.v&&byId[s.model]) state={...state,...s,cfg:{...CFG0,...(s.cfg||{})},isl:{g:"",b:"",r:"",...(s.isl||{})}};
@@ -424,10 +427,14 @@ function update(){
 
   // 金額
   const c=state.cfg, coin=+c.coin, ex=+c.ex, gph=parseFloat(c.gph)||750, hrs=parseFloat(c.hrs)||0;
-  const yenPerCoin=(1000*coin/20)/ex;
-  const perHour=r=>gph*3*(r/100-1)*yenPerCoin;
+  // 増えるメダルは交換単価、減る分は現金で借りるので貸し単価で円にする（交換率＝貸し出しなら同じ）
+  const lend=+c.lend||49, lendYen=(1000*coin/20)/lend, exYen=(1000*coin/20)/ex;
+  const perHour=r=>{const n=gph*3*(r/100-1); return n*(n>=0?exYen:lendYen);};
   const yh=perHour(er);
-  $("cfgsum").textContent=`換算の条件：${coin}円スロ・${ex===50?"等価":ex===49?"49枚交換":(ex/10)+"枚交換"}・${gph}G/時`;
+  [...$("c-ex").options].forEach(o=>o.textContent=o.value+"枚"+(+o.value===lend?"（＝貸し出しと同じ・等価）":""));
+  $("exnote").textContent=ex===lend?`貸し出しと交換が同じ（1枚 約${exYen.toFixed(1)}円）なので、現金で借りても損はありません。`
+    :`1枚 借りる${lendYen.toFixed(1)}円・換える${exYen.toFixed(1)}円。現金で借りた分は1,000円ごとに約${Math.round(1000*(1-lend/ex))}円損するので、負けている（期待値がマイナス）ときは借りる値段で計算しています。`;
+  $("cfgsum").textContent=`換算の条件：${coin}円スロ・${lend}枚貸し・${ex===lend?"等価":ex+"枚交換"}・${gph}G/時`;
 
   // ヒーロー
   const hero=$("hero"), hero2=$("hero2"); [hero,hero2].forEach(h=>h.classList.remove("go","hold","stop"));
@@ -467,7 +474,7 @@ function update(){
     m.big.map((b,i)=>`<tr><td>${i+1}</td><td>1/${b}</td><td>1/${m.reg[i]}</td><td>1/${(1/(1/b+1/m.reg[i])).toFixed(1)}</td>${m.grape?`<td>1/${m.grape[i].toFixed(2)}</td>`:""}${m.sreg?`<td>1/${Math.round(m.sreg[i])}</td>`:""}<td>${m.rate[i].toFixed(1)}%</td></tr>`).join("")+cur;
 }
 
-[["c-coin","coin"],["c-ex","ex"],["c-gph","gph"],["c-hrs","hrs"]].forEach(([id,k])=>{
+[["c-coin","coin"],["c-lend","lend"],["c-ex","ex"],["c-gph","gph"],["c-hrs","hrs"]].forEach(([id,k])=>{
   const el=$(id); el.value=state.cfg[k];
   el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{state.cfg[k]=el.value;update();});
 });
