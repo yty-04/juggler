@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ジャグラー設定判別</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="設定判別">
+<meta name="theme-color" content="#1b1d26">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
@@ -207,7 +213,7 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
           <label for="c-coin">レート
             <select id="c-coin"><option value="20">20円スロ</option><option value="10">10円スロ</option><option value="5">5円スロ</option></select></label>
           <label for="c-ex">交換率
-            <select id="c-ex"><option value="50">等価（50枚）</option><option value="52">5.2枚</option><option value="56">5.6枚</option><option value="60">6枚</option></select></label>
+            <select id="c-ex"><option value="49">49枚（この店）</option><option value="50">等価（50枚）</option><option value="52">5.2枚</option><option value="56">5.6枚</option><option value="60">6枚</option></select></label>
           <label for="c-gph">1時間の回転数
             <input id="c-gph" inputmode="numeric" value="750"></label>
           <label for="c-hrs">あと何時間打つか
@@ -324,10 +330,13 @@ const ADV = [
   {k:"gg",label:"ぶどうを数えたG数",step:100,hint:"空欄なら総ゲーム数",need:"grape"}
 ];
 const EMPTY = {g:"",big:"",reg:"",sreg:"",grape:"",gg:""};
-const CFG0 = {coin:"20",ex:"50",gph:"750",hrs:"5"};
+const CFG0 = {coin:"20",ex:"49",gph:"750",hrs:"5"};
 let state = {model:"neoim", prior:"normal", v:{...EMPTY,g:"3000",big:"12",reg:"13"}, cfg:{...CFG0}, isl:{g:"",b:"",r:""}};
 try{ const s=JSON.parse(localStorage.getItem("jug-state4")||"null");
-  if(s&&s.v&&byId[s.model]) state={...state,...s,cfg:{...CFG0,...(s.cfg||{})},isl:{g:"",b:"",r:"",...(s.isl||{})}}; }catch(e){}
+  if(s&&s.v&&byId[s.model]) state={...state,...s,cfg:{...CFG0,...(s.cfg||{})},isl:{g:"",b:"",r:"",...(s.isl||{})}};
+  // v5より前の保存データは交換率が等価のままなので、この店の49枚に一度だけ切り替える
+  if(s&&!s.cfgVer&&state.cfg.ex==="50") state.cfg.ex="49"; }catch(e){}
+state.cfgVer=5;
 if(!PRIORS[state.prior]) state.prior="normal";
 const save=()=>{try{localStorage.setItem("jug-state4",JSON.stringify(state))}catch(e){}};
 
@@ -422,7 +431,7 @@ function update(){
   const yenPerCoin=(1000*coin/20)/ex;
   const perHour=r=>gph*3*(r/100-1)*yenPerCoin;
   const yh=perHour(er);
-  $("cfgsum").textContent=`換算の条件：${coin}円スロ・${ex===50?"等価":(ex/10)+"枚交換"}・${gph}G/時`;
+  $("cfgsum").textContent=`換算の条件：${coin}円スロ・${ex===50?"等価":ex===49?"49枚交換":(ex/10)+"枚交換"}・${gph}G/時`;
 
   // ヒーロー
   const hero=$("hero"); hero.classList.remove("go","hold","stop");
