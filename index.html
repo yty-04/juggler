@@ -157,13 +157,6 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
     <h1>ジャグラー<span class="lamp">設定判別</span></h1>
   </header>
 
-  <section class="hero sum" id="hero" aria-live="polite">
-    <div class="sumrow">
-      <div><div class="sigrow"><span class="dot"></span><span class="sig" id="sig">–</span></div><div class="ctx" id="ctx"></div></div>
-      <div class="yen" id="yen">–</div>
-    </div>
-    <div class="hiprob"><span>高設定(4〜6)の可能性</span><div class="track"><div class="fill" id="hifill" style="width:0"></div></div><b id="hipct">–</b></div>
-  </section>
 
   <section class="panel">
     <span class="label">① 機種をえらぶ</span>
@@ -178,6 +171,14 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
       <div class="kw" id="kw"></div>
       <p class="note">それでも分からなければ、上の「機種がわからない」を選んでください。全機種の中央値で概算します。</p>
     </details>
+  </section>
+
+  <section class="hero sum" id="hero" aria-live="polite">
+    <div class="sumrow">
+      <div><div class="sigrow"><span class="dot"></span><span class="sig" id="sig">–</span></div><div class="ctx" id="ctx"></div></div>
+      <div class="yen" id="yen">–</div>
+    </div>
+    <div class="hiprob"><span>高設定(4〜6)の可能性</span><div class="track"><div class="fill" id="hifill" style="width:0"></div></div><b id="hipct">–</b></div>
   </section>
 
   <section class="panel">
@@ -326,12 +327,15 @@ const ADV = [
 ];
 const EMPTY = {g:"",big:"",reg:"",sreg:"",grape:"",gg:""};
 const CFG0 = {coin:"20",lend:"49",ex:"49",gph:"750",hrs:"5"};
-let state = {model:"neoim", prior:"normal", v:{...EMPTY,g:"3000",big:"12",reg:"13"}, cfg:{...CFG0}, isl:{g:"",b:"",r:""}};
+let state = {model:"unknown", prior:"normal", v:{...EMPTY,g:"3000",big:"12",reg:"13"}, cfg:{...CFG0}, isl:{g:"",b:"",r:""}};
 try{ const s=JSON.parse(localStorage.getItem("jug-state4")||"null");
   if(s&&s.v&&byId[s.model]) state={...state,...s,cfg:{...CFG0,...(s.cfg||{})},isl:{g:"",b:"",r:"",...(s.isl||{})}};
   // v5より前の保存データは交換率が等価のままなので、この店の49枚に一度だけ切り替える
-  if(s&&!s.cfgVer&&state.cfg.ex==="50") state.cfg.ex="49"; }catch(e){}
-state.cfgVer=5;
+  if(s&&!s.cfgVer&&state.cfg.ex==="50") state.cfg.ex="49";
+  // v6：機種の初期値を「機種がわからない」にしたので、前の保存データも一度だけ切り替える
+  if(s&&(s.cfgVer||0)<6) state.model="unknown";
+}catch(e){}
+state.cfgVer=6;
 if(!PRIORS[state.prior]) state.prior="normal";
 const save=()=>{try{localStorage.setItem("jug-state4",JSON.stringify(state))}catch(e){}};
 
