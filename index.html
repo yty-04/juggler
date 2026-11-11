@@ -33,31 +33,32 @@
   --good:#4cc982; --warn:#e3b25a; --new:#fb923c; color-scheme:dark }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
-.wrap{max-width:560px;margin:0 auto;padding-block:18px 110px;
+.wrap{max-width:560px;margin:0 auto;padding-block:12px 48px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:flex;flex-direction:column;gap:14px}
-header h1{font-family:var(--f-display);font-size:1.5rem;margin:0;letter-spacing:.02em}
+  display:flex;flex-direction:column;gap:10px}
+header h1{font-family:var(--f-display);font-size:1.15rem;margin:0;letter-spacing:.02em}
 header h1 .lamp{color:var(--accent)}
 header p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
 .label{font-size:.72rem;letter-spacing:.08em;color:var(--muted);font-weight:700}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 
 /* machine grid */
 .machines{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
-.machines button{position:relative;min-width:0;font:500 .8rem/1.25 var(--f-body);padding:9px 4px 7px;border-radius:10px;
+.machines button{position:relative;min-width:0;font:500 .78rem/1.2 var(--f-body);padding:6px 3px 5px;border-radius:10px;
   border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
-.machines button small{font:500 .66rem var(--f-num);color:var(--muted)}
+.machines button small{font:500 .62rem var(--f-num);color:var(--muted)}
+.machines button.unk{grid-column:1/-1;flex-direction:row;justify-content:center;gap:8px;border-style:dashed}
 .machines button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
 .machines button[aria-pressed="true"] small{color:var(--accent)}
-.machines .newb{position:absolute;top:-6px;right:-3px;font:700 .58rem var(--f-body);background:var(--new);color:#fff;padding:1px 5px;border-radius:99px}
+.machines .newb{position:absolute;top:-9px;right:-4px;font:700 .58rem var(--f-body);background:var(--new);color:#fff;padding:1px 5px;border-radius:99px}
 
 /* counters */
-.ctr{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.ctr{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
 .ctr:last-child{border-bottom:0}
 .ctr .name{font-weight:700;display:flex;flex-direction:column;min-width:0}
 .ctr .name small{font-weight:400;color:var(--muted);font-size:.74rem;font-family:var(--f-num)}
 .ctr .ctl{display:flex;align-items:center;gap:6px}
-.ctr input{width:5.6em;text-align:center;font:700 1.2rem var(--f-num);padding:8px 2px;border:1px solid var(--line);
+.ctr input{width:5.6em;text-align:center;font:700 1.2rem var(--f-num);padding:6px 2px;border:1px solid var(--line);
   border-radius:8px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
 .ctr button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);
   color:var(--ink);font:700 1.15rem var(--f-num);cursor:pointer;touch-action:manipulation}
@@ -75,15 +76,19 @@ details summary::before{content:"▸ ";display:inline-block;transition:transform
 details[open] > summary::before{transform:rotate(90deg)}
 
 /* hero */
-.hero{border-radius:16px;padding:16px;border:2px solid var(--sig);background:color-mix(in srgb,var(--sig) 10%,var(--panel));
+.hero{border-radius:16px;padding:14px 16px;border:2px solid var(--sig);background:color-mix(in srgb,var(--sig) 10%,var(--panel));
   display:flex;flex-direction:column;gap:10px;--sig:var(--muted);transition:border-color .3s,background .3s}
 .hero.go{--sig:var(--good)} .hero.hold{--sig:var(--warn)} .hero.stop{--sig:var(--accent)}
 .hero .sigrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .dot{width:16px;height:16px;border-radius:50%;background:var(--sig);box-shadow:0 0 0 5px color-mix(in srgb,var(--sig) 22%,transparent);flex:none}
-.hero .sig{font:700 1.35rem var(--f-display);color:var(--sig)}
+.hero .sig{font:700 1.25rem/1.25 var(--f-display);color:var(--sig)}
+.hero.sum{padding:10px 14px 11px;gap:7px}
+.sumrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px}
+.sumrow .yen{text-align:right}
+.sumrow .yen small{display:block;margin:0}
 .hero .ctx{font-size:.78rem;color:var(--muted);font-family:var(--f-num)}
-.hero .yen{font:700 clamp(2.1rem,10vw,2.9rem)/1.1 var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.hero .yen small{font-size:.9rem;font-family:var(--f-body);color:var(--muted);font-weight:500;margin-left:4px}
+.hero .yen{font:700 clamp(1.9rem,9vw,2.6rem)/1.1 var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.hero .yen small{font-size:.72rem;font-family:var(--f-body);color:var(--muted);font-weight:500;margin-left:4px;letter-spacing:0}
 .hero .sub{font-size:.85rem;color:var(--muted)}
 .hero .sub b{color:var(--ink);font-family:var(--f-num)}
 .hiprob{display:flex;align-items:center;gap:10px;font-size:.85rem}
@@ -141,22 +146,6 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
 .kw button em{font-style:normal;font:700 .74rem var(--f-body);color:var(--accent);white-space:nowrap}
 .kw button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 
-/* 下に固定の結果バー（機種選び・入力中も結果が見える） */
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:10;
-  padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
-  background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  border-top:1px solid var(--line);transition:transform .25s}
-.dock.away{transform:translateY(115%)}
-.dock button{width:100%;max-width:528px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
-  padding:9px 14px 9px 16px;border-radius:14px;border:2px solid var(--sig);background:color-mix(in srgb,var(--sig) 12%,var(--panel));
-  color:var(--ink);cursor:pointer;text-align:left;font:inherit;--sig:var(--muted)}
-.dock.go button{--sig:var(--good)} .dock.hold button{--sig:var(--warn)} .dock.stop button{--sig:var(--accent)}
-.dock .dot{width:12px;height:12px;box-shadow:0 0 0 4px color-mix(in srgb,var(--sig) 22%,transparent)}
-.dock .t{display:flex;flex-direction:column;min-width:0;line-height:1.3}
-.dock .t b{font:700 .95rem var(--f-display);color:var(--sig);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dock .t span{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dock .y{font:700 1.3rem var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;line-height:1.2}
-.dock .y small{display:block;font:500 .66rem var(--f-body);color:var(--muted)}
 @media (max-width:360px){.machines{grid-template-columns:repeat(2,1fr)}.ctr input{width:4.6em}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -166,8 +155,15 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
 <div class="wrap">
   <header>
     <h1>ジャグラー<span class="lamp">設定判別</span></h1>
-    <p>台のデータを入れると「続けるか・やめるか」と1時間あたりの期待収支が出ます。</p>
   </header>
+
+  <section class="hero sum" id="hero" aria-live="polite">
+    <div class="sumrow">
+      <div><div class="sigrow"><span class="dot"></span><span class="sig" id="sig">–</span></div><div class="ctx" id="ctx"></div></div>
+      <div class="yen" id="yen">–</div>
+    </div>
+    <div class="hiprob"><span>高設定(4〜6)の可能性</span><div class="track"><div class="fill" id="hifill" style="width:0"></div></div><b id="hipct">–</b></div>
+  </section>
 
   <section class="panel">
     <span class="label">① 機種をえらぶ</span>
@@ -180,7 +176,7 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
         <li>「GOGO!」のランプはどの機種にもあるので、ランプではなく<b>名前の文字</b>で見分けます</li>
       </ol>
       <div class="kw" id="kw"></div>
-      <p class="note">それでも分からなければ、この店で一番多い「ネオアイムEX」を選べばだいたい合っています。</p>
+      <p class="note">それでも分からなければ、上の「機種がわからない」を選んでください。全機種の中央値で概算します。</p>
     </details>
   </section>
 
@@ -193,11 +189,9 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
     </details>
   </section>
 
-  <section class="hero" id="hero" aria-live="polite">
-    <div class="sigrow"><span class="dot"></span><span class="sig" id="sig">–</span></div>
-    <div class="ctx" id="ctx"></div>
-    <div><div class="yen" id="yen">–</div><div class="sub" id="yensub"></div></div>
-    <div class="hiprob"><span>高設定(4〜6)の可能性</span><div class="track"><div class="fill" id="hifill" style="width:0"></div></div><b id="hipct">–</b></div>
+  <section class="hero" id="hero2">
+    <span class="label">③ 見通しと計算の条件</span>
+    <div class="sub" id="yensub"></div>
     <div>
       <div class="gauge"><div class="needle" id="needle" style="left:23%"></div></div>
       <div class="gscale"><span style="left:0">97%</span><span style="left:23%">100%</span><span style="left:38.5%">102%</span><span style="left:69%">機械割</span><span style="left:100%">110%</span></div>
@@ -258,13 +252,6 @@ details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
   </section>
 </div>
 
-<div class="dock" id="dock">
-  <button type="button" id="dockbtn" aria-label="結果カードを見る">
-    <span class="dot"></span>
-    <span class="t"><b id="dsig">–</b><span id="dctx"></span></span>
-    <span class="y" id="dyen">–</span>
-  </button>
-</div>
 
 <script>
 /* ===== 機種データ =====
@@ -301,7 +288,12 @@ const MACHINES = [
     grape:[5.93,5.93,5.93,5.93,5.87,5.81],
     rate:[97.0,98.1,99.8,102.1,104.5,108.1]}
 ];
-const byId = Object.fromEntries(MACHINES.map(m=>[m.id,m]));
+/* 機種がわからないとき用：設定ごとに全機種の中央値をとった「平均的なジャグラー」 */
+const median=a=>{const b=[...a].sort((x,y)=>x-y),h=b.length>>1;return b.length%2?b[h]:(b[h-1]+b[h])/2;};
+const perSet=k=>[0,1,2,3,4,5].map(i=>+median(MACHINES.map(m=>m[k][i])).toFixed(1));
+const UNKNOWN = {id:"unknown", name:"機種がわからない", full:"機種不明（全機種の中央値で概算）", unknown:true,
+  big:perSet("big"), reg:perSet("reg"), rate:perSet("rate")};
+const byId = Object.fromEntries([...MACHINES,UNKNOWN].map(m=>[m.id,m]));
 
 /* ===== お店の状況（設定1〜6の割合）===== */
 const PRIORS = {normal:[62,16,10,7,3,2], tough:[80,10,5,3,1.5,.5], event:[35,15,15,15,10,10], flat:[1,1,1,1,1,1]};
@@ -348,7 +340,8 @@ const yen=x=>(x>=0?"+":"−")+(Math.round(Math.abs(x)/10)*10).toLocaleString()+"
 
 function buildMachines(){
   $("machines").innerHTML=MACHINES.map(m=>`<button type="button" data-m="${m.id}" aria-pressed="${m.id===state.model}">
-    ${m.isNew?'<span class="newb">新台</span>':''}${m.name}<small>${m.units}台</small></button>`).join("");
+    ${m.isNew?'<span class="newb">新台</span>':''}${m.name}<small>${m.units}台</small></button>`).join("")+
+    `<button type="button" class="unk" data-m="unknown" aria-pressed="${state.model==="unknown"}">機種がわからない<small>全機種の中央値で概算</small></button>`;
   $("machines").querySelectorAll("button").forEach(b=>b.onclick=()=>pickMachine(b.dataset.m));
   $("kw").innerHTML=MACHINES.map(m=>`<button type="button" data-m="${m.id}" aria-pressed="${m.id===state.model}">
     <span><b>${m.full}</b><br>${m.look}</span><em>${m.id===state.model?"選択中":"これにする"}</em></button>`).join("");
@@ -373,6 +366,9 @@ function buildCounters(){
   if(adv.length){
     $("adv").innerHTML=adv.map(counterHTML).join("")+'<p class="note">数えた分だけ精度が上がります。空欄なら使いません。</p>';
     $("moresum").textContent="もっと詳しく（"+[m.grape&&"ぶどう",m.sreg&&"単独REG"].filter(Boolean).join("・")+"）";
+  } else if(m.unknown){
+    $("adv").innerHTML='<p class="note">機種がわからないときは、BIG・REGだけで概算します。</p>';
+    $("moresum").textContent="もっと詳しく（機種不明のためBIG・REGのみ）";
   } else {
     $("adv").innerHTML='<p class="note">この機種はぶどう・単独REGの設定別データが公開されていないため、BIG・REGだけで判定します。</p>';
     $("moresum").textContent="もっと詳しく（この機種はBIG・REGのみ）";
@@ -399,7 +395,7 @@ function update(){
   const prior=isl?isl.w:PRIORS[state.prior];
   $("prior").disabled=!!isl;
   $("shopsum").textContent="お店の状況："+(isl?`島データ反映（平均設定 約${isl.avg.toFixed(1)}）`:PRIOR_NAME[state.prior]);
-  $("islandhead").textContent=`この店の${m.full}は${m.units}台。全台を合計した数字を入れると、その店の甘さを自動で反映します（任意）。`;
+  $("islandhead").textContent=m.unknown?"島の全台を合計した数字を入れると、その店の甘さを自動で反映します（任意）。":`この店の${m.full}は${m.units}台。全台を合計した数字を入れると、その店の甘さを自動で反映します（任意）。`;
   if(isl){
     const a=isl.avg, tone=a<1.8?"渋め":a<2.6?"普通":a<3.5?"甘め":"かなり甘い";
     $("islandmsg").innerHTML=`島の合算 1/${isl.rate.toFixed(1)} → 平均設定 約<b>${a.toFixed(1)}</b>（${tone}）。上の「お店の状況」より優先します。`+
@@ -434,29 +430,18 @@ function update(){
   $("cfgsum").textContent=`換算の条件：${coin}円スロ・${ex===50?"等価":ex===49?"49枚交換":(ex/10)+"枚交換"}・${gph}G/時`;
 
   // ヒーロー
-  const hero=$("hero"); hero.classList.remove("go","hold","stop");
+  const hero=$("hero"), hero2=$("hero2"); [hero,hero2].forEach(h=>h.classList.remove("go","hold","stop"));
   if(!g){
-    $("sig").textContent="総ゲーム数を入れてください"; $("ctx").textContent=m.full;
+    $("sig").textContent="総ゲーム数を入れてください"; $("ctx").textContent=m.unknown?"機種不明（概算）":m.name;
     $("yen").textContent="–"; $("yensub").textContent=""; $("hipct").textContent="–"; $("hifill").style.width="0";
   } else {
     let cls,label;
     if(er>=102){cls="go";label="打ち続けてOK";} else if(er>=100){cls="hold";label="様子見";} else {cls="stop";label="ヤメ推奨";}
-    if(g<1500) label+="（データ少なめ）";
-    hero.classList.add(cls); $("sig").textContent=label;
-    $("ctx").textContent=`${m.full}・${g.toLocaleString()}G・BIG ${big??0} / REG ${reg??0}（合算 ${frac(g,(big||0)+(reg||0))}）`;
-    $("yen").innerHTML=`${yen(yh)}<small>/ 1時間</small>`;
-    $("yensub").innerHTML=hrs>0?`あと${hrs}時間打つと <b>${yen(yh*hrs)}</b>（約${Math.round(gph*3*(er/100-1)*hrs).toLocaleString()}枚）の期待値`:"";
+    [hero,hero2].forEach(h=>h.classList.add(cls)); $("sig").textContent=label;
+    $("ctx").textContent=`${m.unknown?"機種不明（概算）":m.name}・${g.toLocaleString()}G・合算 ${frac(g,(big||0)+(reg||0))}`+(g<1500?"・データ少なめ":"");
+    $("yen").innerHTML=`${yen(yh)}<small>1時間あたり</small>`;
+    $("yensub").innerHTML=hrs>0?`あと${hrs}時間打つと <b>${yen(yh*hrs)}</b>（約${(()=>{const n=Math.round(gph*3*(er/100-1)*hrs);return (n>=0?"+":"−")+Math.abs(n).toLocaleString();})()}枚）の期待値`:"";
     $("hipct").textContent=Math.round(hi*100)+"%"; $("hifill").style.width=(hi*100).toFixed(1)+"%";
-  }
-  // 下の固定バー
-  const dock=$("dock"); dock.classList.remove("go","hold","stop");
-  if(!g){
-    $("dsig").textContent="総ゲーム数を入れてください"; $("dctx").textContent=m.name; $("dyen").textContent="–";
-  } else {
-    dock.classList.add(hero.classList.contains("go")?"go":hero.classList.contains("hold")?"hold":"stop");
-    $("dsig").textContent=$("sig").textContent;
-    $("dctx").textContent=`${m.name}・${g.toLocaleString()}G・高設定 ${Math.round(hi*100)}%`;
-    $("dyen").innerHTML=`${yen(yh)}<small>1時間あたり</small>`;
   }
   $("needle").style.left=(g?Math.min(100,Math.max(0,(er-97)/13*100)):23)+"%";
   $("c1").textContent=yen(perHour(m.rate[0]))+"/時"; $("c6").textContent=yen(perHour(m.rate[5]))+"/時";
@@ -475,7 +460,7 @@ function update(){
   let chip,msg;
   if(!g){chip='<span class="chip w">入力待ち</span>';msg="";}
   else{chip=g<2000?'<span class="chip w">サンプル少なめ</span>':g<5000?'<span class="chip b">参考レベル</span>':'<span class="chip g">信頼度高め</span>';
-    msg=` 使用要素：${used.join("、")||"なし"}。最有力は設定${top+1}。前提：${isl?"島データ":PRIOR_NAME[state.prior]}。`;}
+    msg=` 使用要素：${used.join("、")||"なし"}。最有力は設定${top+1}。前提：${isl?"島データ":PRIOR_NAME[state.prior]}。`+(m.unknown?"機種不明のため、全機種の中央値のスペックで概算しています。":"");}
   $("status").innerHTML=chip+msg;
   const cur=g?`<tr class="now"><td>現在</td><td>${big!==null?frac(g,big):"–"}</td><td>${reg!==null?frac(g,reg):"–"}</td><td>${frac(g,(big||0)+(reg||0))}</td>${m.grape?`<td>${grape?"1/"+(gg/grape).toFixed(2):"–"}</td>`:""}${m.sreg?`<td>${sreg!==null?frac(g,sreg):"–"}</td>`:""}<td></td></tr>`:"";
   $("spec").innerHTML=`<caption style="text-align:left;font-size:.8rem;color:var(--muted);padding-bottom:4px">${m.full}</caption><tr><th>設定</th><th>BIG</th><th>REG</th><th>合算</th>${m.grape?"<th>ぶどう</th>":""}${m.sreg?"<th>単独REG</th>":""}<th>機械割</th></tr>`+
@@ -495,12 +480,6 @@ $("prior").onchange=e=>{state.prior=e.target.value;update();};
 $("reset").onclick=()=>{state.v={...EMPTY};buildCounters();update();};
 buildMachines();buildCounters();update();
 
-// 結果カードが画面に見えている間は、下の固定バーを隠す
-$("dockbtn").onclick=()=>$("hero").scrollIntoView({behavior:smooth(),block:"start"});
-if("IntersectionObserver" in window){
-  new IntersectionObserver(([e])=>$("dock").classList.toggle("away",e.intersectionRatio>0.35),
-    {threshold:[0,0.35,0.6,1]}).observe($("hero"));
-}
 </script>
 </body>
 </html>
