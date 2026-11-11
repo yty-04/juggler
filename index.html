@@ -326,7 +326,7 @@ const ADV = [
   {k:"gg",label:"ぶどうを数えたG数",step:100,hint:"空欄なら総ゲーム数",need:"grape"}
 ];
 const EMPTY = {g:"",big:"",reg:"",sreg:"",grape:"",gg:""};
-const CFG0 = {coin:"20",lend:"49",ex:"49",gph:"750",hrs:"5"};
+const CFG0 = {coin:"20",lend:"49",ex:"50",gph:"750",hrs:"5"};
 let state = {model:"unknown", prior:"normal", v:{...EMPTY,g:"3000",big:"12",reg:"13"}, cfg:{...CFG0}, isl:{g:"",b:"",r:""}};
 try{ const s=JSON.parse(localStorage.getItem("jug-state4")||"null");
   if(s&&s.v&&byId[s.model]) state={...state,...s,cfg:{...CFG0,...(s.cfg||{})},isl:{g:"",b:"",r:"",...(s.isl||{})}};
@@ -334,8 +334,10 @@ try{ const s=JSON.parse(localStorage.getItem("jug-state4")||"null");
   if(s&&!s.cfgVer&&state.cfg.ex==="50") state.cfg.ex="49";
   // v6：機種の初期値を「機種がわからない」にしたので、前の保存データも一度だけ切り替える
   if(s&&(s.cfgVer||0)<6) state.model="unknown";
+  // v7：この店の交換率は5.0枚（1000円分＝50枚）と分かったので、前の保存データも一度だけ切り替える
+  if(s&&(s.cfgVer||0)<7) state.cfg.ex="50";
 }catch(e){}
-state.cfgVer=6;
+state.cfgVer=7;
 if(!PRIORS[state.prior]) state.prior="normal";
 const save=()=>{try{localStorage.setItem("jug-state4",JSON.stringify(state))}catch(e){}};
 
@@ -435,7 +437,7 @@ function update(){
   const lend=+c.lend||49, lendYen=(1000*coin/20)/lend, exYen=(1000*coin/20)/ex;
   const perHour=r=>{const n=gph*3*(r/100-1); return n*(n>=0?exYen:lendYen);};
   const yh=perHour(er);
-  [...$("c-ex").options].forEach(o=>o.textContent=o.value+"枚"+(+o.value===lend?"（＝貸し出しと同じ・等価）":""));
+  [...$("c-ex").options].forEach(o=>o.textContent=o.value+"枚（"+[(o.value/10).toFixed(1)+"枚",o.value==="50"&&"この店",+o.value===lend&&"等価"].filter(Boolean).join("・")+"）");
   $("exnote").textContent=ex===lend?`貸し出しと交換が同じ（1枚 約${exYen.toFixed(1)}円）なので、現金で借りても損はありません。`
     :`1枚 借りる${lendYen.toFixed(1)}円・換える${exYen.toFixed(1)}円。現金で借りた分は1,000円ごとに約${Math.round(1000*(1-lend/ex))}円損するので、負けている（期待値がマイナス）ときは借りる値段で計算しています。`;
   $("cfgsum").textContent=`換算の条件：${coin}円スロ・${lend}枚貸し・${ex===lend?"等価":ex+"枚交換"}・${gph}G/時`;
