@@ -27,7 +27,7 @@
   --good:#4cc982; --warn:#e3b25a; --new:#fb923c; color-scheme:dark }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
-.wrap{max-width:560px;margin:0 auto;padding-block:18px 48px;
+.wrap{max-width:560px;margin:0 auto;padding-block:18px 110px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   display:flex;flex-direction:column;gap:14px}
 header h1{font-family:var(--f-display);font-size:1.5rem;margin:0;letter-spacing:.02em}
@@ -73,7 +73,7 @@ details[open] > summary::before{transform:rotate(90deg)}
   display:flex;flex-direction:column;gap:10px;--sig:var(--muted);transition:border-color .3s,background .3s}
 .hero.go{--sig:var(--good)} .hero.hold{--sig:var(--warn)} .hero.stop{--sig:var(--accent)}
 .hero .sigrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.hero .dot{width:16px;height:16px;border-radius:50%;background:var(--sig);box-shadow:0 0 0 5px color-mix(in srgb,var(--sig) 22%,transparent);flex:none}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--sig);box-shadow:0 0 0 5px color-mix(in srgb,var(--sig) 22%,transparent);flex:none}
 .hero .sig{font:700 1.35rem var(--f-display);color:var(--sig)}
 .hero .ctx{font-size:.78rem;color:var(--muted);font-family:var(--f-num)}
 .hero .yen{font:700 clamp(2.1rem,10vw,2.9rem)/1.1 var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
@@ -123,6 +123,34 @@ tr.now td{color:var(--accent);font-weight:700}
 .chip.g{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
 .chip.w{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
 .chip.b{background:var(--accent-soft);color:var(--accent)}
+/* 機種の見分け方 */
+details.guide{margin-top:8px;border-top:1px dashed var(--line);padding-top:4px}
+.guide ol{margin:4px 0 8px;padding-left:1.3em;font-size:.8rem;color:var(--muted)}
+.guide ol b{color:var(--ink)}
+.kw{display:flex;flex-direction:column;gap:4px}
+.kw button{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;text-align:left;padding:7px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:400 .8rem/1.4 var(--f-body);cursor:pointer}
+.kw button b{font-weight:700}
+.kw button span{color:var(--muted);font-size:.74rem}
+.kw button em{font-style:normal;font:700 .74rem var(--f-body);color:var(--accent);white-space:nowrap}
+.kw button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+/* 下に固定の結果バー（機種選び・入力中も結果が見える） */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:10;
+  padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
+  background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);transition:transform .25s}
+.dock.away{transform:translateY(115%)}
+.dock button{width:100%;max-width:528px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:9px 14px 9px 16px;border-radius:14px;border:2px solid var(--sig);background:color-mix(in srgb,var(--sig) 12%,var(--panel));
+  color:var(--ink);cursor:pointer;text-align:left;font:inherit;--sig:var(--muted)}
+.dock.go button{--sig:var(--good)} .dock.hold button{--sig:var(--warn)} .dock.stop button{--sig:var(--accent)}
+.dock .dot{width:12px;height:12px;box-shadow:0 0 0 4px color-mix(in srgb,var(--sig) 22%,transparent)}
+.dock .t{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.dock .t b{font:700 .95rem var(--f-display);color:var(--sig);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock .t span{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock .y{font:700 1.3rem var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;line-height:1.2}
+.dock .y small{display:block;font:500 .66rem var(--f-body);color:var(--muted)}
 @media (max-width:360px){.machines{grid-template-columns:repeat(2,1fr)}.ctr input{width:4.6em}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -138,6 +166,16 @@ tr.now td{color:var(--accent);font-weight:700}
   <section class="panel">
     <span class="label">① 機種をえらぶ</span>
     <div class="machines" id="machines" role="group" aria-label="機種"></div>
+    <details class="guide" id="guide">
+      <summary>どの機種かわからないとき</summary>
+      <ol>
+        <li><b>台の上の看板</b>か<b>リールのまわりのパネル</b>に機種名が書いてあります</li>
+        <li>台の上の<b>データカウンターの画面</b>にも機種名が出ることが多いです</li>
+        <li>「GOGO!」のランプはどの機種にもあるので、ランプではなく<b>名前の文字</b>で見分けます</li>
+      </ol>
+      <div class="kw" id="kw"></div>
+      <p class="note">それでも分からなければ、この店で一番多い「ネオアイムEX」を選べばだいたい合っています。</p>
+    </details>
   </section>
 
   <section class="panel">
@@ -214,6 +252,14 @@ tr.now td{color:var(--accent);font-weight:700}
   </section>
 </div>
 
+<div class="dock" id="dock">
+  <button type="button" id="dockbtn" aria-label="結果カードを見る">
+    <span class="dot"></span>
+    <span class="t"><b id="dsig">–</b><span id="dctx"></span></span>
+    <span class="y" id="dyen">–</span>
+  </button>
+</div>
+
 <script>
 /* ===== 機種データ =====
    big/reg/grape/sreg は「1/x」の x。grape・sreg は設定別データがある機種だけ持つ。
@@ -222,29 +268,29 @@ const MY5 = {big:[273.1,270.8,266.4,254.0,240.1,229.1], reg:[409.6,385.5,336.1,2
   grape:[5.90,5.88,5.82,5.81,5.79,5.69], sreg:[652.73,607.65,500.25,411.91,397.19,333.81],
   rate:[97.0,98.0,99.9,102.8,105.3,109.4]};
 const MACHINES = [
-  {id:"neoim", name:"ネオアイムEX", full:"ネオアイムジャグラーEX", units:40,
+  {id:"neoim", name:"ネオアイムEX", full:"ネオアイムジャグラーEX", look:"「ネオ」「NEO」と「アイム」。何も付かない「アイムジャグラーEX」も同じ中身なのでこれでOK", units:40,
     big:[273.1,269.7,269.7,259.0,259.0,255.0], reg:[439.8,399.6,331.0,315.1,255.0,255.0],
     grape:[6.06,6.04,6.04,6.04,6.02,5.80], sreg:[630.15,574.88,474.90,448.88,364.09,364.09],
     rate:[97.0,98.0,99.5,101.1,103.3,105.5]},
-  {id:"my5", name:"マイジャグV", full:"マイジャグラーV", units:30, ...MY5},
-  {id:"gogo3", name:"ゴーゴー3", full:"ゴーゴージャグラー3", units:26,
+  {id:"my5", name:"マイジャグV", full:"マイジャグラーV", look:"「マイ」「MY」＋数字が「V」（5）", units:30, ...MY5},
+  {id:"gogo3", name:"ゴーゴー3", full:"ゴーゴージャグラー3", look:"名前が「ゴーゴージャグラー」（数字は3）", units:26,
     big:[259.0,258.0,257.0,254.0,247.3,234.9], reg:[354.2,332.7,306.2,268.6,247.3,234.9],
     rate:[97.2,98.2,99.4,101.6,103.8,106.5]},
-  {id:"my6", name:"マイジャグVI", full:"マイジャグラーVI", units:7, isNew:true, ...MY5},
-  {id:"funky2", name:"ファンキー2", full:"ファンキージャグラー2", units:8,
+  {id:"my6", name:"マイジャグVI", full:"マイジャグラーVI", look:"「マイ」「MY」＋数字が「VI」（6）。新台", units:7, isNew:true, ...MY5},
+  {id:"funky2", name:"ファンキー2", full:"ファンキージャグラー2", look:"「ファンキー」「FUNKY」", units:8,
     big:[266.4,259.0,256.0,249.2,240.1,219.9], reg:[439.8,407.1,366.1,322.8,299.3,262.1],
     grape:[5.95,5.92,5.90,5.85,5.78,5.72], sreg:[644.60,562.32,504.96,451.06,417.18,361.75],
     rate:[97.0,98.5,99.8,102.0,104.3,109.0]},
-  {id:"mister", name:"ミスター", full:"ミスタージャグラー", units:8,
+  {id:"mister", name:"ミスター", full:"ミスタージャグラー", look:"「ミスター」「Mr.」", units:8,
     big:[268.6,267.5,260.1,249.2,240.9,237.4], reg:[374.5,354.2,331.0,291.3,257.0,237.4],
     rate:[97.0,98.0,99.8,102.7,105.5,107.3]},
-  {id:"happy8", name:"ハッピーVIII", full:"ハッピージャグラーVIII", units:8,
+  {id:"happy8", name:"ハッピーVIII", full:"ハッピージャグラーVIII", look:"「ハッピー」「HAPPY」", units:8,
     big:[273.1,270.8,263.2,254.0,239.2,226.0], reg:[397.2,362.1,332.7,300.6,273.1,256.0],
     rate:[97.0,98.1,99.9,102.9,105.8,108.4]},
-  {id:"girlsss", name:"ガールズSS", full:"ジャグラーガールズSS", units:8,
+  {id:"girlsss", name:"ガールズSS", full:"ジャグラーガールズSS", look:"「ガールズ」「GIRLS」", units:8,
     big:[273.1,270.8,260.1,250.1,243.6,226.0], reg:[381.0,350.5,316.6,281.3,270.8,252.1],
     rate:[97.0,97.9,99.9,102.1,104.0,107.5]},
-  {id:"ultra", name:"Uミラクル", full:"ウルトラミラクルジャグラー", units:8,
+  {id:"ultra", name:"Uミラクル", full:"ウルトラミラクルジャグラー", look:"「ウルトラ」「ミラクル」", units:8,
     big:[267.5,261.1,256.0,242.7,233.2,216.3], reg:[425.6,402.1,350.5,322.8,297.9,277.7],
     grape:[5.93,5.93,5.93,5.93,5.87,5.81],
     rate:[97.0,98.1,99.8,102.1,104.5,108.1]}
@@ -294,8 +340,14 @@ const yen=x=>(x>=0?"+":"−")+(Math.round(Math.abs(x)/10)*10).toLocaleString()+"
 function buildMachines(){
   $("machines").innerHTML=MACHINES.map(m=>`<button type="button" data-m="${m.id}" aria-pressed="${m.id===state.model}">
     ${m.isNew?'<span class="newb">新台</span>':''}${m.name}<small>${m.units}台</small></button>`).join("");
-  $("machines").querySelectorAll("button").forEach(b=>b.onclick=()=>{state.model=b.dataset.m;buildMachines();buildCounters();update();});
+  $("machines").querySelectorAll("button").forEach(b=>b.onclick=()=>pickMachine(b.dataset.m));
+  $("kw").innerHTML=MACHINES.map(m=>`<button type="button" data-m="${m.id}" aria-pressed="${m.id===state.model}">
+    <span><b>${m.full}</b><br>${m.look}</span><em>${m.id===state.model?"選択中":"これにする"}</em></button>`).join("");
+  $("kw").querySelectorAll("button").forEach(b=>b.onclick=()=>{pickMachine(b.dataset.m);$("guide").open=false;
+    $("machines").scrollIntoView({behavior:smooth(),block:"nearest"});});
 }
+const smooth=()=>matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth";
+function pickMachine(id){state.model=id;buildMachines();buildCounters();update();}
 function counterHTML(f){
   return `<div class="ctr" data-k="${f.k}">
     <label class="name" for="f-${f.k}">${f.label}<small id="r-${f.k}">${f.hint}</small></label>
@@ -387,6 +439,16 @@ function update(){
     $("yensub").innerHTML=hrs>0?`あと${hrs}時間打つと <b>${yen(yh*hrs)}</b>（約${Math.round(gph*3*(er/100-1)*hrs).toLocaleString()}枚）の期待値`:"";
     $("hipct").textContent=Math.round(hi*100)+"%"; $("hifill").style.width=(hi*100).toFixed(1)+"%";
   }
+  // 下の固定バー
+  const dock=$("dock"); dock.classList.remove("go","hold","stop");
+  if(!g){
+    $("dsig").textContent="総ゲーム数を入れてください"; $("dctx").textContent=m.name; $("dyen").textContent="–";
+  } else {
+    dock.classList.add(hero.classList.contains("go")?"go":hero.classList.contains("hold")?"hold":"stop");
+    $("dsig").textContent=$("sig").textContent;
+    $("dctx").textContent=`${m.name}・${g.toLocaleString()}G・高設定 ${Math.round(hi*100)}%`;
+    $("dyen").innerHTML=`${yen(yh)}<small>1時間あたり</small>`;
+  }
   $("needle").style.left=(g?Math.min(100,Math.max(0,(er-97)/13*100)):23)+"%";
   $("c1").textContent=yen(perHour(m.rate[0]))+"/時"; $("c6").textContent=yen(perHour(m.rate[5]))+"/時";
 
@@ -423,6 +485,13 @@ $("prior").value=state.prior;
 $("prior").onchange=e=>{state.prior=e.target.value;update();};
 $("reset").onclick=()=>{state.v={...EMPTY};buildCounters();update();};
 buildMachines();buildCounters();update();
+
+// 結果カードが画面に見えている間は、下の固定バーを隠す
+$("dockbtn").onclick=()=>$("hero").scrollIntoView({behavior:smooth(),block:"start"});
+if("IntersectionObserver" in window){
+  new IntersectionObserver(([e])=>$("dock").classList.toggle("away",e.intersectionRatio>0.35),
+    {threshold:[0,0.35,0.6,1]}).observe($("hero"));
+}
 </script>
 </body>
 </html>
